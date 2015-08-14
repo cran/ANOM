@@ -1,0 +1,210 @@
+\documentclass[a4paper]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{parskip}
+\usepackage{natbib}
+\bibpunct{(}{)}{;}{a}{}{,}
+\usepackage{hyperref}
+\usepackage[margin=1in]{geometry}
+\usepackage[labelfont={bf}, margin=0.5cm]{caption}
+
+%\VignetteIndexEntry{ANOM}
+%\VignetteEngine{knitr::knitr}
+
+\title{Analysis of means: Examples using package \texttt{ANOM}}
+\date{\today}
+\author{Philip Pallmann}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+The analysis of means (ANOM) is a graphical method for presenting multiple group comparisons with an overall mean (``grand mean"). Ever since Ott published his pioneering paper \citep{Ott1967}, ANOM has enjoyed great popularity in quality control, and piles of extensions and applications have been discussed. A nice SAS-based overview of ANOM is given in the book by \citet{Nelson2005}.
+
+The purpose of this vignette is to illustrate how R's broad functionality can be exploited for ANOM-type data analysis. We have already elaborated on various real-world data applications of ANOM in the tutorial publication accompanying this package \citep{Pallmann2015}. In the following we want to delve into some further non-trivial data scenarios:
+\begin{itemize}
+  \item ANOM with more than one factor e.g., in a two-way layout (Section \ref{Twoway}),
+  \item ANOM with non-normal data e.g., (overdispersed) Poisson count data using generalized linear models (Section \ref{Count}),
+  \item ANOM with correlated data in clustered, nested, hierarchical, or multilevel structures e.g., repeated measures with multiple raters using linear mixed-effects models (Section \ref{Mixed}).
+\end{itemize}
+All comparisons are performed at a familywise type I error level of 5\%. 
+
+<<LIB, echo=FALSE, message=FALSE, warning=FALSE>>=
+library(ANOM)
+library(multcomp)
+library(ggplot2)
+@
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{ANOM in a two-way layout}
+\label{Twoway}
+
+\citet{Nelson2005} describe a trial on 30 male cancer patients in a balanced complete two-way layout. Each patient was treated with one therapy (chemo or radiation) and one out of three drugs (named 1, 2, and 3), and the level of hemoglobin was measured afterwards.
+
+<<DATAHG, message=FALSE, warning=FALSE>>=
+library(ANOM)
+data(hemoglobin)
+@
+
+The six drug-therapy combinations may be compared in a simplified pseudo-one-way layout where the new factor's levels are the combinations of therapy and drug.
+
+<<PSEUDOONEWAY, fig.cap="ANOM decision chart for the hemoglobin data based one a pseudo-one-way analysis.", fig.height=5.5>>=
+hemoglobin$the <- as.factor(abbreviate(hemoglobin$therapy))
+hemoglobin$td <- with(hemoglobin, the:drug)
+hemodel <- lm(level ~ td, hemoglobin)
+he <- glht(hemodel, mcp(td="GrandMean"), alternative="two.sided")
+ANOM(he, xlabel="Treatment", ylabel="Hemoglobin Level")
+@
+
+We find that chemotherapy together with drug 3 leads to hemoglobin levels that are significantly above the grand mean (Figure 1). On the contrary, if radiation therapy is combined with either drug 1 or 2, the levels of hemoglobin are very close to the lower decision limit.
+
+Acting on the assumption that the two treatment factors ``therapy" and ``drug" do not interact, we may also investigate the marginal drug effects across both therapies. An analysis of variance suggests that the interaction effect is negligible.
+
+<<TWOWAYIA>>=
+hemodel2 <- lm(level ~ drug * therapy, hemoglobin)
+anova(hemodel2)
+@
+
+This result clears the way for making reasonable inferences for drugs pooled over both types of therapy.
+
+<<TWOWAY, fig.cap="ANOM decision chart for the hemoglobin data based on a two-way analysis.", fig.height=5.5>>=
+hemodel3 <- lm(level ~ drug + therapy, hemoglobin)
+he3 <- glht(hemodel3, mcp(drug="GrandMean"), alternative="two.sided")
+ANOM(he3, xlabel="Drug", ylabel="Hemoglobin Level")
+@
+
+Figure 2 shows that drug 3 raises hemoglobin levels significantly compared to the grand mean. Keep in mind that this type of pooled analysis would be inept in the presence of a therapy-drug interaction; here one should rather perform separate drug comparisons for radiation and for chemotherapy.
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{ANOM with (overdispersed) count data}
+\label{Count}
+
+\citet{Beall1942} reports a study on the effectiveness of six insect sprays to control the tomato hornworm \textit{Manduca quinquemaculata} (formerly called \textit{Phlegethontius quinquemaculatus}), which is a common pest of solanaceae. The experiment was carried out in a randomized complete block design: each spray was applied to plants in each of six blocks, and the number of insects found after treatment was counted and recorded (taking two random samples per block and spray).
+
+The data is stored in R's basic \texttt{datasets} package, but this version is incomplete as the block structure of the experiment was missed out for some reason. We include a block variable according to Table 7 in Beall's original publication.
+
+<<INSECTSData>>=
+data(InsectSprays)
+InsectSprays$block <- as.factor(rep(1:6, each=2))
+@
+
+A common distributional assumption for count data is Poisson, so it sounds like a good idea to fit a Poisson generalized linear model with a logarithmic link function to the data. However, recall that the variance of a Poisson random variable equals its expected value. This basic assumption is more often than not violated with real-world data, and we usually include a variance inflation factor $\phi$ in the model to cope with this overdispersion (or extra-Poisson variability).
+
+<<INSECTS>>=
+insmodel1 <- glm(count ~ spray + block, data=InsectSprays,
+                 family=quasipoisson(link="log"))
+summary(insmodel1)$dispersion
+@
+
+In our case the estimated variance inflation of 19.8\% is negligible, hence we will most likely not harm our analysis when using a simple Poisson GLM without an overdispersion parameter. An analysis of deviance reveals that both treatment and block bring about highly significant effects.
+
+<<INSECTS2>>=
+insmodel2 <- glm(count ~ spray + block, data=InsectSprays,
+                 family=poisson(link="log"))
+anova(insmodel2, test="Chisq")
+@
+
+We perform an ANOM to find out which insect sprays lead to lower or higher counts of insects compared to average. The logarithmic transformation of the counts is automatically reversed to simplify interpretation of the resulting graph. 
+
+<<INSECTS2a, fig.cap="ANOM decision chart for the insect spray data based on a Poisson GLM.", fig.height=5.5>>=
+ins <- glht(insmodel2, mcp(spray="GrandMean"))
+ANOM(ins)
+@
+
+Figure 3 shows that all six treatments are significantly different from the grand mean: more insects were counted after applying sprays A, B, and F, and fewer with sprays C through E. The varying widths of the gray band (upped minus lower decision limit) just reflect the dependence of the Poisson variance on the expected value.
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{ANOM with linear mixed-effects models}
+\label{Mixed}
+
+\citet{Pinheiro2000} describe data from an investigation of ergonomic stools performed by \citet{Wretenberg1993}. They had nine people assess the physical effort to rise from each of four stool types: a stool of ordinary height, a low ordinary stool, a one-legged stool, and a pneumatic stool. Each subject tested each stool type once and rated the perceived exertion on the so-called Borg scale, which takes values from 6 to 20. We wish to detect types of stools that are significantly more or less difficult to rise from in comparison to average.
+
+<<DATAES, message=FALSE, warning=FALSE>>=
+library(nlme)
+data(ergoStool)
+@
+
+This is a complete block design; each of the four stools under study is evaluated nine times. One challenge is that the scoring is clearly subjective e.g., a person suffering from chronic back pain is more likely to assign lower ratings than a healthy individual. To account for this variability between raters, a linear mixed-effects model is our method of choice.
+
+The model for the $i$th individual has the general form
+\begin{equation*}
+\mathbf{y}_i = \mathbf{X}_i \boldsymbol{\beta} + \mathbf{Z}_i \mathbf{b}_i + \boldsymbol{\epsilon}_i
+\end{equation*}
+where $\mathbf{y}_i$ are the outcomes, $\boldsymbol{\beta}$ the fixed and $\mathbf{b}_i$ the random effects, $\mathbf{X}_i$ and $\mathbf{Z}_i$ the design matrices for the fixed and random effects, and $\boldsymbol{\epsilon}_i$ the residuals. We assume that $\mathbf{b}_i \sim \mathcal{N}(\mathbf{0}, \mathbf{D})$ and $\mathbf{e}_i \sim \mathcal{N}(\mathbf{0}, \mathbf{R}_i)$, and additionally $\operatorname{cov}(\mathbf{b}_i, \mathbf{e}_i) = \mathbf{0}$.
+
+In our ergonomic stools example, we model fixed stool effects and treat the test persons as random. We hereby make the assumption that the testers are representative of all people who could sit on these stools and that their scorings are normally distributed with between-rater variance $\sigma_b$.
+
+There are several concurrent and (in part) complementary frameworks for mixed-effects modeling which coexist in the R world. Here we illustrate ANOM using two of the most popular and best-established packages, \texttt{nlme} \citep{Pinheiro2013} and \texttt{lme4} \citep{Bates2013}.
+
+\subsection{Using \texttt{nlme}}
+
+We model the perceived effort to rise (on the Borg scale) as a function of the type of stool and include a random subject effect to acknowledge between-rater variability.
+
+<<NLME, fig.cap="ANOM decision chart for the ergonomic stool data based on a linear mixed-effects model.", fig.height=5.5>>=
+library(nlme)
+esmodel1 <- lme(effort ~ Type, random=~1|Subject, data=ergoStool)
+es1 <- glht(esmodel1, mcp(Type="GrandMean"), alternative="two.sided")
+ANOM(es1, xlabel="Stool Type", ylabel="Exertion (Borg Scale)")
+@
+
+Figure 4 displays that it is significantly more difficult to rise from stools of type 2. On the contrary, the perceived exertion is significantly below the grand mean for stool types 1 and 4.
+
+\subsection{Using \texttt{lme4}}
+
+An identical graphic can be generated with the functionality in \texttt{lme4}.
+
+<<LME4, eval=FALSE>>=
+library(lme4)
+esmodel2 <- lmer(effort ~ Type + (1|Subject), data=ergoStool)
+es2 <- glht(esmodel2, mcp(Type="GrandMean"), alternative="two.sided")
+ANOM(es2, xlabel="Stool Type", ylabel="Exertion (Borg Scale)")
+@
+
+Note that there are instances when the two mixed-effects model packages cannot be used interchangeably. Only \texttt{nlme} supports imposing a pattern like compound symmetry or AR(1) on the covariance matrix of the random effects and/or residuals whereas \texttt{lme4}'s strong points are sophisticated random effects hierarchies and nested structures, and it also fits generalized linear mixed-effects models.
+
+\subsection{Ignoring the repeated structure}
+
+One may wonder what would happen if we did not account for the fact that each chair was tested by several individuals. We fit a simple linear model and observe that the decision limits drift apart so that stool type 4 is no longer significant (Figure 5).
+
+<<MIXIGNORE, fig.cap="ANOM decision chart for the ergonomic stool data based on a standard linear model.", fig.height=5.5>>=
+esmodel3 <- lm(effort ~ Type, ergoStool)
+es3 <- glht(esmodel3, mcp(Type="GrandMean"), alternative="two.sided")
+ANOM(es3, xlabel="Stool Type", ylabel="Exertion (Borg Scale)")
+@
+
+The reason is quite simple: when fitting a mixed-effects model, we partition the total variance of the data into a component explained by the variability among the nine raters and a residual component. If we ignore the clustered structure of the data and fit a standard linear model, all variability is summed up in the residual variance, thus making it harder to detect significant stool effects.
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliographystyle{abbrvnat}
+\bibliography{vign}
+
+\end{document}

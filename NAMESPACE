@@ -1,0 +1,3 @@
+import(ggplot2, MCPAN, multcomp, nparcomp, SimComp)
+importFrom("stats", binomial, confint, poisson, predict, weighted.mean)
+export(ANOM, ANOMgen, ANOMintern)

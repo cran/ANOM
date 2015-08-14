@@ -1,0 +1,27 @@
+#########################
+### ANOM package news ###
+#########################
+
+Please report weird or unexpected behavior to Philip Pallmann <p.pallmann@lancaster.ac.uk>
+
+#########################
+
+Version 0.4 (12 August 2015)
+
+- Added an option to switch between white or gray background.
+- Moved the PDF vignette from folder inst/doc to vignettes.
+- Added lme4 and nlme to Suggests.
+- Included a CITATION file.
+- Changed e-mail of the package maintainer.
+
+#########################
+
+Version 0.3.1 (11 February 2014)
+
+- Minor changes to the references.
+
+#########################
+
+Version 0.3 (19 November 2013)
+
+- Added a vignette including a couple of worked examples. Type 'vignette("ANOM")' to check it out!
