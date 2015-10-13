@@ -105,6 +105,7 @@ ANOMgen <- function(mu, n=NULL, gm=NULL, lo, up, names=NULL, alternative="two.si
       annotate("text", label="UDL", x=max(grp)+0.4, y=udl[max(grp)], size=4, vjust=-0.75) +
       ylim((min(mu)-(gm-min(mu))/5)[1],
            (max(max(mu), max(udl))+(max(max(mu), max(udl))-gm)/5)[1]) +
+      back +
       theme(axis.text.x=element_text(size=18), axis.text.y=element_text(size=18),
             axis.title.x=element_text(size=25), axis.title.y=element_text(size=25))
     

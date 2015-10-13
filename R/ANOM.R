@@ -67,6 +67,8 @@ ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
     
     if(printp==T){
       pvals <- summary(mc)$test$pvalues[1:length(ss)]
+    }else{
+      pvals <- NULL
     }
     
     bg <- match.arg(bg, choices=c("gray", "grey", "white"))
