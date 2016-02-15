@@ -63,7 +63,7 @@ Hothorn, T., Bretz, F., Westfall, P. (2008) Simultaneous inference in general pa
 
 Konietschke, F., Hothorn, L. A., Brunner, F. (2012) Rank-based multiple test procedures and simultaneous confidence intervals. Electronic Journal of Statistics 6, 738--759.
 
-Pallmann, P. and Hothorn, L. A. (2015) Analysis of means (ANOM): A generalized approach using R. To appear in Journal of Applied Statistics.
+Pallmann, P. and Hothorn, L. A. (2016) Analysis of means (ANOM): A generalized approach using R. Journal of Applied Statistics. DOI: 10.1080/02664763.2015.1117584.
 }
 \author{
 Philip Pallmann \email{p.pallmann@lancaster.ac.uk}

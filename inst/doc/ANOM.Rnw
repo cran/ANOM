@@ -2,6 +2,7 @@
 
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{doi}
 \usepackage{parskip}
 \usepackage{natbib}
 \bibpunct{(}{)}{;}{a}{}{,}
@@ -30,7 +31,7 @@
 
 The analysis of means (ANOM) is a graphical method for presenting multiple group comparisons with an overall mean (``grand mean"). Ever since Ott published his pioneering paper \citep{Ott1967}, ANOM has enjoyed great popularity in quality control, and piles of extensions and applications have been discussed. A nice SAS-based overview of ANOM is given in the book by \citet{Nelson2005}.
 
-The purpose of this vignette is to illustrate how R's broad functionality can be exploited for ANOM-type data analysis. We have already elaborated on various real-world data applications of ANOM in the tutorial publication accompanying this package \citep{Pallmann2015}. In the following we want to delve into some further non-trivial data scenarios:
+The purpose of this vignette is to illustrate how R's broad functionality can be exploited for ANOM-type data analysis. We have already elaborated on various real-world data applications of ANOM in the tutorial publication accompanying this package \citep{Pallmann2016}. In the following we want to delve into some further non-trivial data scenarios:
 \begin{itemize}
   \item ANOM with more than one factor e.g., in a two-way layout (Section \ref{Twoway}),
   \item ANOM with non-normal data e.g., (overdispersed) Poisson count data using generalized linear models (Section \ref{Count}),
