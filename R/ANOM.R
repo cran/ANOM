@@ -1,5 +1,7 @@
-ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
-                 stdep=NULL, stind=NULL, pst=NULL, pbin=NULL, bg="white"){
+ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=TRUE, printp=TRUE,
+                 stdep=NULL, stind=NULL, pst=NULL, pbin=NULL, bg="white",
+                 bgrid=TRUE, axlsize=18, axtsize=25, npsize=5, psize=5,
+                 lwidth=1, dlstyle="dashed", fillcol="darkgray"){
   
   if(!(class(mc)[1] %in% c("glht", "SimCi", "mctp", "binomRDci"))){
     stop("Please insert an object of class 'glht', 'SimCi', 'mctp', or 'binomRDci' for mc!")
@@ -53,19 +55,19 @@ ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
       }
     }
     
-    if(is.null(xlabel)==T){
+    if(is.null(xlabel)==TRUE){
       xlabel <- ii
     }else{
       xlabel <- xlabel
     }
     
-    if(is.null(ylabel)==T){
+    if(is.null(ylabel)==TRUE){
       ylabel <- dd
     }else{
       ylabel <- ylabel
     }
     
-    if(printp==T){
+    if(printp==TRUE){
       pvals <- summary(mc)$test$pvalues[1:length(ss)]
     }else{
       pvals <- NULL
@@ -77,11 +79,15 @@ ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
       if(modclass=="lmerMod"){
         ANOMgen(mu=means, n=ss, lo=ci$confint[, "lwr"], up=ci$confint[, "upr"],
                 names=levels(mc$model@frame[, ii]), alternative=mc$alternative,
-                xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg)
+                xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg,
+                bgrid=bgrid, axlsize=axlsize, axtsize=axtsize, npsize=npsize,
+                psize=psize, lwidth=lwidth, dlstyle=dlstyle, fillcol=fillcol)
       }else{
         ANOMgen(mu=means, n=ss, lo=ci$confint[, "lwr"], up=ci$confint[, "upr"],
                 names=mc$model$xlevels[[1]], alternative=mc$alternative,
-                xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg)
+                xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg,
+                bgrid=bgrid, axlsize=axlsize, axtsize=axtsize, npsize=npsize,
+                psize=psize, lwidth=lwidth, dlstyle=dlstyle, fillcol=fillcol)
       }
     }
     
@@ -91,34 +97,52 @@ ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
         if(mc$alternative=="two.sided"){
           ANOMintern(mu=m*cit[, 1], n=ss, gm=m, lo=m*cit[, 2]-m, up=m*cit[, 3]-m,
                      names=mc$model$xlevels[[1]], alternative=mc$alternative,
-                     xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg, whichone="glm")
+                     xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg,
+                     bgrid=bgrid, axlsize=axlsize, axtsize=axtsize, npsize=npsize,
+                     psize=psize, lwidth=lwidth, dlstyle=dlstyle, fillcol=fillcol,
+                     whichone="glm")
         }
         if(mc$alternative=="greater"){
           ANOMintern(mu=m*cit[, 1], n=ss, gm=m, lo=m*cit[, 2]-m, up=Inf,
                      names=mc$model$xlevels[[1]], alternative=mc$alternative,
-                     xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg, whichone="glm")
+                     xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg,
+                     bgrid=bgrid, axlsize=axlsize, axtsize=axtsize, npsize=npsize,
+                     psize=psize, lwidth=lwidth, dlstyle=dlstyle, fillcol=fillcol,
+                     whichone="glm")
         }
         if(mc$alternative=="less"){
           ANOMintern(mu=m*cit[, 1], n=ss, gm=m, lo=-Inf, up=m*cit[, 3]-m,
                      names=mc$model$xlevels[[1]], alternative=mc$alternative,
-                     xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg, whichone="glm")
+                     xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg,
+                     bgrid=bgrid, axlsize=axlsize, axtsize=axtsize, npsize=npsize,
+                     psize=psize, lwidth=lwidth, dlstyle=dlstyle, fillcol=fillcol,
+                     whichone="glm")
         }
       }
       if(mc$model$family$family=="binomial"){
         if(mc$alternative=="two.sided"){
           ANOMintern(mu=cit[, 1], n=ss, gm=m, lo=cit[ ,2]-m, up=cit[ ,3]-m,
                      names=mc$model$xlevels[[1]], alternative=mc$alternative,
-                     xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg, whichone="glm")
+                     xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg,
+                     bgrid=bgrid, axlsize=axlsize, axtsize=axtsize, npsize=npsize,
+                     psize=psize, lwidth=lwidth, dlstyle=dlstyle, fillcol=fillcol,
+                     whichone="glm")
         }
         if(mc$alternative=="less"){
           ANOMintern(mu=cit[, 1], n=ss, gm=m, lo=-Inf, up=cit[ ,3]-m,
                      names=mc$model$xlevels[[1]], alternative=mc$alternative,
-                     xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg, whichone="glm")
+                     xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg,
+                     bgrid=bgrid, axlsize=axlsize, axtsize=axtsize, npsize=npsize,
+                     psize=psize, lwidth=lwidth, dlstyle=dlstyle, fillcol=fillcol,
+                     whichone="glm")
         }
         if(mc$alternative=="greater"){
           ANOMintern(mu=cit[, 1], n=ss, gm=m, lo=cit[ ,2]-m, up=Inf,
                      names=mc$model$xlevels[[1]], alternative=mc$alternative,
-                     xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg, whichone="glm")
+                     xlabel=xlabel, ylabel=ylabel, printn=printn, p=pvals, bg=bg,
+                     bgrid=bgrid, axlsize=axlsize, axtsize=axtsize, npsize=npsize,
+                     psize=psize, lwidth=lwidth, dlstyle=dlstyle, fillcol=fillcol,
+                     whichone="glm")
         }
       }
       
@@ -132,19 +156,19 @@ ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
       stop("For ANOM you need a 'GrandMean' contrast matrix!")
     }
     
-    if(is.null(stdep)==T){
+    if(is.null(stdep)==TRUE){
       stop("Please insert a vector giving the values\n
            of the dependent variable for stdep!")
     }
     
-    if(is.null(stind)==T){
+    if(is.null(stind)==TRUE){
       stop("Please insert a numeric vector giving the values\n
            of the independent variable for stind!")
     }
     
-    if(is.numeric(stdep)==F){stop("The dependent variable must be numeric.")}
+    if(is.numeric(stdep)==FALSE){stop("The dependent variable must be numeric.")}
     
-    if((length(stdep)==length(stind))==F){
+    if((length(stdep)==length(stind))==FALSE){
       stop("Dependent and independent variable must be vectors of equal length.")
     }
     
@@ -157,19 +181,19 @@ ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
       grame <- mean(stdep)
     }
     
-    if(is.null(xlabel)==T){
+    if(is.null(xlabel)==TRUE){
       xlabel <- "group"
     }else{
       xlabel <- xlabel
     }
     
-    if(is.null(ylabel)==T){
+    if(is.null(ylabel)==TRUE){
       ylabel <- mc$resp
     }else{
       ylabel <- ylabel
     }
     
-    if(printp==T){
+    if(printp==TRUE){
       
       if(class(pst)!="SimTest"){
         stop("Please insert an object of class 'SimTest' for pst,\n
@@ -187,11 +211,16 @@ ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
     if(mc$test.class=="ratios"){
       ANOMintern(mu=100*as.vector(mc$estimate), n=ss, lo=100*as.vector(mc$lower),
                  up=100*as.vector(mc$upper), alternative=mc$alternative,
-                 xlabel=xlabel, ylabel=ylabel, printn=printn, p=ppp, bg=bg, whichone="ratio")
+                 xlabel=xlabel, ylabel=ylabel, printn=printn, p=ppp, bg=bg,
+                 bgrid=bgrid, axlsize=axlsize, axtsize=axtsize, npsize=npsize,
+                 psize=psize, lwidth=lwidth, dlstyle=dlstyle, fillcol=fillcol,
+                 whichone="ratio")
     }else{
       ANOMgen(mu=as.vector(mc$estimate)+grame, n=ss, lo=as.vector(mc$lower),
               up=as.vector(mc$upper), alternative=mc$alternative,
-              xlabel=xlabel, ylabel=ylabel, printn=printn, p=ppp, bg=bg)
+              xlabel=xlabel, ylabel=ylabel, printn=printn, p=ppp, bg=bg,
+              bgrid=bgrid, axlsize=axlsize, axtsize=axtsize, npsize=npsize,
+              psize=psize, lwidth=lwidth, dlstyle=dlstyle, fillcol=fillcol)
     }
     
     }
@@ -202,23 +231,23 @@ ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
       stop("For ANOM you need a 'UserDefined' grand-mean-type contrast matrix!")
     }
     
-    if(is.null(mc$Correlation)==T){
+    if(is.null(mc$Correlation)==TRUE){
       stop("Set the argument 'correlation' in function 'mctp()' to 'TRUE'.")
     }
     
-    if(is.null(xlabel)==T){
+    if(is.null(xlabel)==TRUE){
       xlabel <- as.character(mc$input$formula[3])
     }else{
       xlabel <- xlabel
     }
     
-    if(is.null(ylabel)==T){
+    if(is.null(ylabel)==TRUE){
       ylabel <- as.character(mc$input$formula[2])
     }else{
       ylabel <- ylabel
     }
     
-    if(printp==T){
+    if(printp==TRUE){
       pvals <- mc$Analysis$p.Value
     }
     
@@ -228,7 +257,9 @@ ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
               up=mc$Analysis$Upper, #abs(mc$Analysis$Estimator - mc$Analysis$Upper),
               names=colnames(mc$Contrast), alternative=mc$input$alternative,
               xlabel=xlabel, ylabel=ylabel,
-              printn=printn, p=pvals, bg=bg)
+              printn=printn, p=pvals, bg=bg, bgrid=bgrid,
+              axlsize=axlsize, axtsize=axtsize, npsize=npsize, psize=psize, lwidth=lwidth,
+              dlstyle=dlstyle, fillcol=fillcol)
     }
     
     if(mc$input$alternative=="greater"){
@@ -237,7 +268,9 @@ ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
               up=Inf,
               names=colnames(mc$Contrast), alternative=mc$input$alternative,
               xlabel=xlabel, ylabel=ylabel,
-              printn=printn, p=pvals, bg=bg)
+              printn=printn, p=pvals, bg=bg, bgrid=bgrid,
+              axlsize=axlsize, axtsize=axtsize, npsize=npsize, psize=psize, lwidth=lwidth,
+              dlstyle=dlstyle, fillcol=fillcol)
     }
     
     if(mc$input$alternative=="less"){
@@ -246,7 +279,9 @@ ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
               up=mc$Analysis$Upper, #abs(mc$Analysis$Estimator - mc$Analysis$Upper),
               names=colnames(mc$Contrast), alternative=mc$input$alternative,
               xlabel=xlabel, ylabel=ylabel,
-              printn=printn, p=pvals, bg=bg)
+              printn=printn, p=pvals, bg=bg, bgrid=bgrid,
+              axlsize=axlsize, axtsize=axtsize, npsize=npsize, psize=psize, lwidth=lwidth,
+              dlstyle=dlstyle, fillcol=fillcol)
     }
     
   }
@@ -257,19 +292,19 @@ ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
       stop("For ANOM you need a 'GrandMean' contrast matrix!")
     }
     
-    if(is.null(xlabel)==T){
+    if(is.null(xlabel)==TRUE){
       xlabel <- "group"
     }else{
       xlabel <- xlabel
     }
     
-    if(is.null(ylabel)==T){
+    if(is.null(ylabel)==TRUE){
       ylabel <- "probability of success"
     }else{
       ylabel <- ylabel
     }
     
-    if(printp==T){
+    if(printp==TRUE){
       
       if(class(pbin)!="binomRDtest"){
         stop("Please insert an object of class 'binomRDtest' for pbin,\n
@@ -287,7 +322,9 @@ ANOM <- function(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
     ANOMgen(mu=mc$p, n=mc$n, lo=mc$conf.int[, "lower"],
             up=mc$conf.int[, "upper"], names=mc$names,
             alternative=mc$alternative, xlabel=xlabel, ylabel=ylabel,
-            printn=printn, p=ppp, bg=bg)
+            printn=printn, p=ppp, bg=bg, bgrid=bgrid,
+            axlsize=axlsize, axtsize=axtsize, npsize=npsize, psize=psize, lwidth=lwidth,
+            dlstyle=dlstyle, fillcol=fillcol)
     
   }
   

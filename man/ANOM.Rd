@@ -7,8 +7,10 @@ ANOM Decision Charts
 Compute an analysis of means (i.e., a multiple contrast test involving comparisons of each group versus the grand mean) and draw a decision chart as commonly used in technometrics.
 }
 \usage{
-ANOM(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
-     stdep=NULL, stind=NULL, pst=NULL, pbin=NULL, bg="white")
+ANOM(mc, xlabel=NULL, ylabel=NULL, printn=TRUE, printp=TRUE,
+     stdep=NULL, stind=NULL, pst=NULL, pbin=NULL, bg="white",
+     bgrid=TRUE, axlsize=18, axtsize=25, npsize=5, psize=5,
+     lwidth=1, dlstyle="dashed", fillcol="darkgray")
 }
 \arguments{
   \item{mc}{An object of class \code{glht}, \code{SimCi}, \code{mctp}, or \code{binomRDci} involving group comparisons with the grand mean of all groups. See details.}
@@ -21,6 +23,14 @@ ANOM(mc, xlabel=NULL, ylabel=NULL, printn=T, printp=T,
   \item{pst}{An object of class \code{SimTest}. Only required if an object of class \code{SimCi} is inserted for \code{mc} and simultaneous p-values are to be printed (\code{printp=TRUE}), otherwise ignored. Default is \code{NULL}.}
   \item{pbin}{An object of class \code{binomRDtest}. Only required if an object of class \code{binomRDci} is inserted for \code{mc} and simultaneous p-values are to be printed (\code{printp=TRUE}), otherwise ignored. Default is \code{NULL}.}
   \item{bg}{A character string. Should the plot's background be \code{"white"} (default) or \code{"gray"} (or \code{"grey"})?}
+  \item{bgrid}{A logical. Should background grid lines be plotted? Default is \code{TRUE}.}
+  \item{axlsize}{A numerical value specifying the font size of the axis labels. Default is \code{18}.}
+  \item{axtsize}{A numerical value specifying the font size of the axis titles. Default is \code{25}.}
+  \item{npsize}{A numerical value specifying the font size of the sample sizes and p-values (if printed). Default is \code{5}.}
+  \item{psize}{A numerical value specifying the size of the points (group means). Default is \code{5}.}
+  \item{lwidth}{A numerical value specifying the width of the lines (grand mean, decision limits, vertical connections). Default is \code{1}.}
+  \item{dlstyle}{A character string specifying the style of the decision limits. Default is \code{"dashed"}.}
+  \item{fillcol}{A character string specifying the color of the area of no significant deviation from the grand mean. Default is \code{"darkgray"}.}
 }
 \details{
 The 'standard' version of ANOM is invoked by inserting a \code{glht} object (created with function \code{glht} from package \code{multcomp} using a contrast matrix of type \code{GrandMean}) for \code{mc}. The \code{glht} object must be based on one of the model types \code{aov}, \code{lm}, \code{glm}, \code{gls}, \code{lme}, or \code{lmer}. That is, ANOM is feasible not only for simple linear (ANOVA) models with Gaussian data, but indeed for a broad range of (semi-)parametric models e.g., with Poisson or binomial data, hierarchical and clustered structures, and more (Hothorn et al. 2008). If the underlying model is a Poisson or binomial GLM (involving log and logit link functions, respectively), the effects are automatically transformed back to counts (Poisson) or proportions (binomial).
@@ -63,7 +73,7 @@ Hothorn, T., Bretz, F., Westfall, P. (2008) Simultaneous inference in general pa
 
 Konietschke, F., Hothorn, L. A., Brunner, F. (2012) Rank-based multiple test procedures and simultaneous confidence intervals. Electronic Journal of Statistics 6, 738--759.
 
-Pallmann, P. and Hothorn, L. A. (2016) Analysis of means (ANOM): A generalized approach using R. Journal of Applied Statistics. DOI: 10.1080/02664763.2015.1117584.
+Pallmann, P. and Hothorn, L. A. (2016) Analysis of means (ANOM): A generalized approach using R. Journal of Applied Statistics, 43(8), 1541--1560.
 }
 \author{
 Philip Pallmann \email{p.pallmann@lancaster.ac.uk}

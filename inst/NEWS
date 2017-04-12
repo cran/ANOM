@@ -6,6 +6,13 @@ Please report weird or unexpected behavior to Philip Pallmann <p.pallmann@lancas
 
 #########################
 
+Version 0.5 (10 April 2017)
+
+- Added more flexibility for tweaking font sizes, line widths, colours, and background grid lines.
+- Updated CITATION file.
+
+#########################
+
 Version 0.4.3 (15 February 2016)
 
 - Included a CITATION file.
